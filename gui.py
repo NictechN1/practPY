@@ -5,6 +5,7 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
+import sqlite3
 from database import Database
 
 class PhoneBookGUI:
@@ -167,29 +168,37 @@ class PhoneBookGUI:
         """Показать форму для добавления/редактирования контакта"""
         form = tk.Toplevel(self.root)
         form.title("Добавить контакт" if not contact_data else "Редактировать контакт")
-        form.geometry("400x300")
+        form.geometry("450x350")
         form.resizable(False, False)
         
+        # Основной фрейм для отступов
+        main_frame = ttk.Frame(form, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
         # Поля формы
-        ttk.Label(form, text="Имя:").pack(pady=5)
-        first_name_entry = ttk.Entry(form, width=30)
-        first_name_entry.pack(pady=5)
+        ttk.Label(main_frame, text="Имя:*", font=("Arial", 10, "bold")).grid(row=0, column=0, sticky=tk.W, pady=5)
+        first_name_entry = ttk.Entry(main_frame, width=30, font=("Arial", 10))
+        first_name_entry.grid(row=0, column=1, pady=5, padx=10, sticky=tk.W)
         
-        ttk.Label(form, text="Фамилия:").pack(pady=5)
-        last_name_entry = ttk.Entry(form, width=30)
-        last_name_entry.pack(pady=5)
+        ttk.Label(main_frame, text="Фамилия:*", font=("Arial", 10, "bold")).grid(row=1, column=0, sticky=tk.W, pady=5)
+        last_name_entry = ttk.Entry(main_frame, width=30, font=("Arial", 10))
+        last_name_entry.grid(row=1, column=1, pady=5, padx=10, sticky=tk.W)
         
-        ttk.Label(form, text="Телефон:").pack(pady=5)
-        phone_entry = ttk.Entry(form, width=30)
-        phone_entry.pack(pady=5)
+        ttk.Label(main_frame, text="Телефон:*", font=("Arial", 10, "bold")).grid(row=2, column=0, sticky=tk.W, pady=5)
+        phone_entry = ttk.Entry(main_frame, width=30, font=("Arial", 10))
+        phone_entry.grid(row=2, column=1, pady=5, padx=10, sticky=tk.W)
         
-        ttk.Label(form, text="Email:").pack(pady=5)
-        email_entry = ttk.Entry(form, width=30)
-        email_entry.pack(pady=5)
+        ttk.Label(main_frame, text="Email:", font=("Arial", 10)).grid(row=3, column=0, sticky=tk.W, pady=5)
+        email_entry = ttk.Entry(main_frame, width=30, font=("Arial", 10))
+        email_entry.grid(row=3, column=1, pady=5, padx=10, sticky=tk.W)
         
-        ttk.Label(form, text="Организация:").pack(pady=5)
-        org_entry = ttk.Entry(form, width=30)
-        org_entry.pack(pady=5)
+        ttk.Label(main_frame, text="Организация:", font=("Arial", 10)).grid(row=4, column=0, sticky=tk.W, pady=5)
+        org_entry = ttk.Entry(main_frame, width=30, font=("Arial", 10))
+        org_entry.grid(row=4, column=1, pady=5, padx=10, sticky=tk.W)
+        
+        # Подсказка об обязательных полях
+        help_label = ttk.Label(main_frame, text="* - обязательные поля", font=("Arial", 8), foreground="gray")
+        help_label.grid(row=5, column=0, columnspan=2, pady=10)
         
         # Если редактируем, заполняем поля
         if contact_data:
@@ -231,17 +240,29 @@ class PhoneBookGUI:
                 self.load_contacts()
                 messagebox.showinfo("Успех", "Контакт сохранен")
                 
+            except sqlite3.IntegrityError:
+                messagebox.showerror("Ошибка", "Контакт с таким номером телефона уже существует")
             except Exception as e:
                 messagebox.showerror("Ошибка", f"Не удалось сохранить контакт: {e}")
         
-        # Кнопки формы
-        button_frame = ttk.Frame(form)
-        button_frame.pack(pady=20)
+        # Фрейм для кнопок внизу формы
+        button_frame = ttk.Frame(main_frame)
+        button_frame.grid(row=6, column=0, columnspan=2, pady=20)
         
-        ttk.Button(button_frame, text="💾 Сохранить", 
-                  command=save_contact).pack(side=tk.LEFT, padx=10)
-        ttk.Button(button_frame, text="❌ Отмена", 
-                  command=form.destroy).pack(side=tk.LEFT, padx=10)
+        # КНОПКИ СОХРАНИТЬ И ОТМЕНА (теперь они точно видны!)
+        save_btn = ttk.Button(button_frame, text="💾 Сохранить", 
+                             command=save_contact)
+        save_btn.pack(side=tk.LEFT, padx=10)
+        
+        cancel_btn = ttk.Button(button_frame, text="❌ Отмена", 
+                               command=form.destroy)
+        cancel_btn.pack(side=tk.LEFT, padx=10)
+        
+        # Фокус на первом поле
+        first_name_entry.focus()
+        
+        # Обработка нажатия Enter для сохранения
+        form.bind('<Return>', lambda event: save_contact())
     
     def run(self):
         """Запуск приложения"""
